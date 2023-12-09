@@ -13,32 +13,40 @@ import cartsRouter from './routes/carts.routes.js'
 //Chat
 import chatRouter from './routes/chat.routes.js'
 
+// views
+import views from './routes/views.routes.js'
+
 import { __dirname, __filename } from './utils.js'
 
 const PORT = 8080
 const MONGOOSE_URL = 'mongodb+srv://SombraAkai:1234@cluster0.nqkm3pp.mongodb.net/videogameShop?retryWrites=true&w=majority'
 
-const app = express()
-
-app.use(express.json())
-app.use(express.urlencoded({ extended: true}))
-
-//MongoAtlas
-app.use('/api/mdb/products', productsRouter)
-app.use('/api/mdb/carts', cartsRouter)
-
-//Chat
-app.use ('/', chatRouter)
-
-
-app.engine('handlebars', handlebars.engine())
-app.set('views', `${__dirname}/views`)
-app.set('view engine', 'handlebars')
-
-app.use('/static', express.static(`${__dirname}/public`))
 
 try{
     await mongoose.connect(MONGOOSE_URL)
+
+    const app = express()
+
+    app.use(express.json())
+    app.use(express.urlencoded({ extended: true}))
+
+    //MongoAtlas
+    app.use('/api/products', productsRouter)
+    app.use('/api/carts', cartsRouter)
+
+    //Chat
+    app.use ('/', chatRouter)
+
+    //views
+    app.use('/api/views', views)
+
+
+    app.engine('handlebars', handlebars.engine())
+    app.set('views', `${__dirname}/views`)
+    app.set('view engine', 'handlebars')
+
+    app.use('/static', express.static(`${__dirname}/public`))
+
     const httpServer = app.listen(PORT, () => {
         console.log(`Express server active on port ${PORT}`)
     })
