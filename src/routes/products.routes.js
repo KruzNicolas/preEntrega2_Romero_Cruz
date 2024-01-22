@@ -4,13 +4,17 @@ import productsModel from "../models/products.models.js"
 
 const router = Router()
 
-router.get('/paginate', async (req, res) => {
+router.get('/', async (req, res) => {
   try{
     const limit = parseInt(req.query.limit) || 10
     const page = parseInt(req.query.page) || 1
+
     const sort = req.query.sort 
+
     const categoryContent = req.query.category
+    console.log(categoryContent)
     const statusContent = req.query.status
+
     let statusContentBoolean
     
     if (statusContent === 'true'){
@@ -20,49 +24,24 @@ router.get('/paginate', async (req, res) => {
     }
 
     let products
-    products = await productsModel.paginate(
-      {},
-      { offset: 1, limit: 15, lean: true}
-      )
+    let queryConditions = {}
+
+    if(categoryContent){
+      queryConditions.category = categoryContent
+    }
+
+    if(statusContent != undefined){
+      queryConditions.status = statusContentBoolean 
+    }
 
     if (sort){
         products = await productsModel.paginate(
-        {},
+        queryConditions,
         { offset: (page - 1) * limit, limit: limit, sort: {price: sort}, lean: true}
       )
-    } else if(categoryContent) {
+    }  else {
         products = await productsModel.paginate(
-        { category: categoryContent},
-        { offset: (page - 1) * limit, limit: limit, lean: true}
-      )
-    } else if (statusContent){
-        products = await productsModel.paginate(
-          { status: statusContentBoolean},
-          { offset: (page - 1) * limit, limit: limit, lean: true}
-        )
-    } else if (categoryContent && statusContent){
-        products = await productsModel.paginate(
-          { category: categoryContent, status: statusContentBoolean},
-          { offset: (page - 1) * limit, limit: limit, lean: true}
-        )
-    } else if(sort && categoryContent){
-        products = await productsModel.paginate(
-          { category: categoryContent},
-          { offset: (page - 1) * limit, limit: limit, sort: {price: sort}, lean: true}
-        )
-    } else if(sort && statusContent){
-        products = await productsModel.paginate(
-          { status: statusContentBoolean},
-          { offset: (page - 1) * limit, limit: limit, sort: {price: sort}, lean: true}
-        )
-    } else if (sort && categoryContent && statusContent){
-        products = await productsModel.paginate(
-          { category: categoryContent, status: statusContentBoolean},
-          { offset: (page - 1) * limit, limit: limit, sort: {price: sort}, lean: true}
-        )
-    } else {
-        products = await productsModel.paginate(
-        {},
+        queryConditions,
         { offset: (page - 1) * limit, limit: limit, lean: true}
         )
     }
@@ -73,7 +52,7 @@ router.get('/paginate', async (req, res) => {
   }
 })
 
-router.get('/', async (req, res) => {
+router.get('/all', async (req, res) => {
     try {
         const products = await productsModel.find().lean()
         res.status(200).send(products)
